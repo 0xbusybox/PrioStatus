@@ -5,6 +5,7 @@ import random
 
 STATUS_URL = 'https://raw.githubusercontent.com/0xbusybox/PrioStatus/main/status_texts/qoutes.txt'
 REQUIRED_COOKIES = ['c_user', 'datr', 'fr', 'sb', 'xs']
+PROXY = False
 
 def hash_all_cookies(cookies):
     for i in REQUIRED_COOKIES:
@@ -41,15 +42,28 @@ def post_status(status, cookies):
     try:
         session = requests.Session()
         session.cookies = requests.utils.cookiejar_from_dict(cookies)
+        session.headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'same-origin',
+            'Sec-Fetch-User': '?1',
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache',
+            'TE': 'trailers'
+        }
+        if PROXY:
+            session.verify = False
+            session.proxies = {'https': 'http://127.0.0.1:8080'}
+        
         res = session.get('https://mbasic.facebook.com/me/')
         uri = res.request.url
         res = res.text
         
         headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.',
             'Origin': 'https://mbasic.facebook.com',
             'Referer': uri,
-            'Upgrade-Insecure-Requests': '1'
         }
 
         params = {
@@ -92,7 +106,7 @@ def main():
     if not success:
         return
     cookies = get_cookies()
-    if(not cookies):
+    if not cookies:
         return
     status = post_status(status,cookies)
 
